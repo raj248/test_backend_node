@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
-
+import { log, logs } from "./utils/log.js";
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,10 +16,18 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 import notificationsRoute from "./routes/notifications.js";
 app.use("/notifications", notificationsRoute);
 
-app.get("/", (req, res) => {
-  res.send("Quiz App Backend is running 🚀");
+app.get("/status", (req, res) => {
+  res.json({
+    time: new Date().toLocaleString(),
+    env: process.env.NODE_ENV || "development",
+    port: process.env.PORT || 3000
+  });
+});
+
+app.get("/logs", (req, res) => {
+  res.json({ logs });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  log(`Server running on port ${PORT}`);
 });

@@ -3,6 +3,7 @@
 import express from "express";
 import admin from "firebase-admin";
 import dotenv from "dotenv";
+import { log, error } from "../utils/log.js";
 
 dotenv.config();
 
@@ -51,11 +52,11 @@ router.post("/broadcast", async (req, res) => {
 
   try {
     const response = await admin.messaging().send(message);
-    console.log("✅ Broadcast notification sent:", response);
+    log("✅ Broadcast notification sent:", response);
     res.json({ success: true, response });
-  } catch (error) {
-    console.error("❌ Error sending broadcast notification:", error);
-    res.status(500).json({ success: false, error: error.message });
+  } catch (e) {
+    error("❌ Error sending broadcast notification:", e);
+    res.status(500).json({ success: false, error: e.message });
   }
 });
 
@@ -86,14 +87,14 @@ router.get("/broadcast/test", async (req, res) => {
 
   try {
     const response = await admin.messaging().send(message);
-    console.log("✅ Test broadcast notification sent:", response);
+    log("✅ Test broadcast notification sent:", response);
     res.json({
       success: true,
       message: "Test broadcast notification sent to all-devices",
       response,
     });
   } catch (error) {
-    console.error("❌ Error sending test broadcast:", error);
+    error("❌ Error sending test broadcast:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
