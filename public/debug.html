@@ -9,7 +9,9 @@
     body {
       font-family: system-ui, sans-serif;
       background: #0f172a;
+      /* dark navy */
       color: #f8fafc;
+      /* white */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -19,6 +21,7 @@
 
     .card {
       background: #1e293b;
+      /* slate grey */
       padding: 2rem;
       border-radius: 1rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -30,11 +33,13 @@
       font-size: 1.5rem;
       margin-bottom: 0.5rem;
       color: #38bdf8;
+      /* sky blue */
     }
 
     p {
       margin: 0.25rem 0;
       color: #cbd5e1;
+      /* light grey */
     }
 
     .badge {
@@ -42,7 +47,9 @@
       padding: 0.25rem 0.5rem;
       border-radius: 0.5rem;
       background: #38bdf8;
+      /* sky blue */
       color: #0f172a;
+      /* dark navy for contrast */
       font-weight: bold;
       font-size: 0.75rem;
       margin-top: 0.5rem;
@@ -54,10 +61,18 @@
       border: none;
       border-radius: 0.5rem;
       background: #38bdf8;
+      /* sky blue */
       color: #0f172a;
+      /* dark navy text for contrast */
       font-weight: bold;
       cursor: pointer;
       font-size: 1rem;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #0ea5e9;
+      /* lighter blue on hover */
     }
 
     button:disabled {
@@ -65,6 +80,8 @@
       cursor: not-allowed;
     }
   </style>
+
+
 </head>
 
 <body>

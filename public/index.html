@@ -9,7 +9,9 @@
     body {
       font-family: system-ui, sans-serif;
       background: #0f172a;
+      /* dark navy */
       color: #f8fafc;
+      /* white */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -21,6 +23,7 @@
 
     .card {
       background: #1e293b;
+      /* slate grey */
       padding: 1.5rem;
       border-radius: 1rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -32,28 +35,42 @@
     h1 {
       font-size: 1.5rem;
       color: #38bdf8;
+      /* sky blue */
       margin-bottom: 0.5rem;
     }
 
     p,
     pre {
       color: #cbd5e1;
+      /* light grey */
       font-size: 0.95rem;
     }
 
-    a {
-      color: #38bdf8;
-      text-decoration: none;
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      background: #38bdf8;
+      /* sky blue */
+      color: #0f172a;
+      /* dark navy */
       font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
     }
 
-    a:hover {
-      text-decoration: underline;
+    button:hover {
+      background: #0ea5e9;
+      /* lighter blue hover */
     }
 
     .badge {
       background: #38bdf8;
+      /* sky blue */
       color: #0f172a;
+      /* dark navy */
       border-radius: 0.5rem;
       padding: 0.2rem 0.5rem;
       font-weight: bold;
@@ -61,6 +78,8 @@
       margin-left: 0.3rem;
     }
   </style>
+
+
 </head>
 
 <body>
@@ -69,7 +88,7 @@
     <p id="serverTime">Loading server time...</p>
     <p>Environment: <span class="badge" id="env">loading...</span></p>
     <p>Port: <span class="badge" id="port">loading...</span></p>
-    <p><a href="/debug.html">🔍 Go to Debug Panel</a></p>
+    <button id="debugBtn">🔍 Go to Debug Panel</button>
   </div>
 
   <div class="card">
@@ -104,6 +123,10 @@
 
     loadStatus();
     loadLogs();
+    document.getElementById('debugBtn').addEventListener('click', () => {
+      window.location.href = '/debug.html';
+    });
+
   </script>
 </body>
 
