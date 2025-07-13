@@ -3,7 +3,6 @@
 import express from "express";
 import admin from "firebase-admin";
 import dotenv from "dotenv";
-import fs from "fs";
 
 dotenv.config();
 
@@ -11,12 +10,12 @@ const router = express.Router();
 
 // Initialize Firebase Admin SDK once
 if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(
-    fs.readFileSync(process.env.FIREBASE_SERVICE_ACCOUNT_PATH, "utf-8")
-  );
-
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert({
+      projectId: process.env.PROJECT_ID,
+      clientEmail: process.env.CLIENT_EMAIL,
+      privateKey: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+    }),
   });
 }
 
