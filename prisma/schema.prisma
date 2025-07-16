@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CourseType {
+  CAInter
+  CAFinal
+}
+
+model Course {
+  id         String     @id @default(cuid())
+  name       String
+  courseType CourseType
+  topics     Topic[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime?  // soft delete
+
+  @@index([name])
+  @@index([courseType])
+}
+
+model Topic {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  course      Course     @relation(fields: [courseId], references: [id])
+  courseId    String
+  mcqs        MCQ[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?  // soft delete
+
+  @@index([courseId])
+  @@index([name])
+}
+
+model MCQ {
+  id              String     @id @default(cuid())
+  question        String
+  options         Json       // { a: "", b: "", c: "", d: "" }
+  correctAnswer   String     // "a", "b", "c", "d"
+  testPaperNumber Int
+  topic           Topic      @relation(fields: [topicId], references: [id])
+  topicId         String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  deletedAt       DateTime?  // soft delete
+
+  @@index([topicId])
+  @@index([testPaperNumber])
+}
+
+model Trash {
+  id         String    @id @default(cuid())
+  tableName  String    // "Course", "Topic", "MCQ"
+  entityId   String    // id of the trashed entity
+  reason     String?   // optional reason for deletion
+  trashedAt  DateTime  @default(now())
+  purgeAfter DateTime? // optional, when to auto-purge
+
+  @@index([tableName])
+  @@index([entityId])
+  @@index([trashedAt])
+}

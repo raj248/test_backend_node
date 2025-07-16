@@ -1,9 +1,7 @@
-// routes/notifications.js
-
-import express from "express";
+import express, { Request, Response } from "express";
 import admin from "firebase-admin";
 import dotenv from "dotenv";
-import { log, error } from "../utils/log.js";
+import { logger } from "~/utils/log";
 
 dotenv.config();
 
@@ -15,7 +13,7 @@ if (!admin.apps.length) {
     credential: admin.credential.cert({
       projectId: process.env.PROJECT_ID,
       clientEmail: process.env.CLIENT_EMAIL,
-      privateKey: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+      privateKey: process.env.PRIVATE_KEY?.replace(/\\n/g, '\n'),
     }),
   });
 }
@@ -24,8 +22,12 @@ if (!admin.apps.length) {
  * POST /notifications/broadcast
  * Send a test notification to all devices subscribed to the "all-devices" topic
  */
-router.post("/broadcast", async (req, res) => {
-  const { title, body, data } = req.body;
+router.post("/broadcast", async (req: Request, res: Response) => {
+  const { title, body, data } = req.body as {
+    title?: string;
+    body?: string;
+    data?: Record<string, string>;
+  };
 
   if (!title || !body) {
     return res.status(400).json({
@@ -33,29 +35,20 @@ router.post("/broadcast", async (req, res) => {
     });
   }
 
-  const message = {
+  const message: admin.messaging.Message = {
     topic: "all-devices",
-    notification: {
-      title,
-      body,
-    },
+    notification: { title, body },
     data: data || {},
-    android: {
-      priority: "high",
-    },
-    apns: {
-      headers: {
-        "apns-priority": "10",
-      },
-    },
+    android: { priority: "high" },
+    apns: { headers: { "apns-priority": "10" } },
   };
 
   try {
     const response = await admin.messaging().send(message);
-    log("✅ Broadcast notification sent:", response);
+    logger.log(`✅ Broadcast notification sent: ${response}`);
     res.json({ success: true, response });
-  } catch (e) {
-    error("❌ Error sending broadcast notification:", e);
+  } catch (e: any) {
+    logger.error(`❌ Error sending broadcast notification: ${e.message}`);
     res.status(500).json({ success: false, error: e.message });
   }
 });
@@ -64,8 +57,8 @@ router.post("/broadcast", async (req, res) => {
  * GET /notifications/broadcast/test
  * Send a test notification to all devices subscribed to "all-devices"
  */
-router.get("/broadcast/test", async (req, res) => {
-  const message = {
+router.get("/broadcast/test", async (_req: Request, res: Response) => {
+  const message: admin.messaging.Message = {
     topic: "all-devices",
     notification: {
       title: "🚀 Test Notification",
@@ -75,26 +68,20 @@ router.get("/broadcast/test", async (req, res) => {
       quizId: "test123",
       test: "true",
     },
-    android: {
-      priority: "high",
-    },
-    apns: {
-      headers: {
-        "apns-priority": "10",
-      },
-    },
+    android: { priority: "high" },
+    apns: { headers: { "apns-priority": "10" } },
   };
 
   try {
     const response = await admin.messaging().send(message);
-    log("✅ Test broadcast notification sent:", response);
+    logger.log(`✅ Test broadcast notification sent: ${response}`);
     res.json({
       success: true,
       message: "Test broadcast notification sent to all-devices",
       response,
     });
-  } catch (error) {
-    error("❌ Error sending test broadcast:", error);
+  } catch (error: any) {
+    logger.error(`❌ Error sending test broadcast: ${error.message}`);
     res.status(500).json({ success: false, error: error.message });
   }
 });
