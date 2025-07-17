@@ -26,7 +26,7 @@ export const TopicController = {
 
   async moveTopicToTrash(req: Request, res: Response) {
     const { topicId } = req.params;
-    const topic = await TopicModel.moveTopicToTrash(topicId);
+    const topic = await TopicModel.moveToTrash(topicId);
     if (!topic) {
       res.status(404).json({ message: 'Topic not found' });
     }

@@ -81,7 +81,6 @@ model Trash {
   id         String    @id @default(cuid())
   tableName  String // "Course", "Topic", "MCQ", "TestPaper"
   entityId   String // id of the trashed entity
-  reason     String? // optional reason for deletion
   trashedAt  DateTime  @default(now())
   purgeAfter DateTime? // optional, when to auto-purge
 

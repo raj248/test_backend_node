@@ -20,7 +20,6 @@ export const TestPaperModel = {
     });
   },
 
-
   async findByTopicId(topicId: string) {
     return prisma.testPaper.findMany({
       where: {

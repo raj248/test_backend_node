@@ -29,21 +29,36 @@ export const TopicModel = {
     });
   },
 
-  async moveTopicToTrash(topicId: string) {
-    const topic = await prisma.topic.update({
-      where: { id: topicId },
-      data: { deletedAt: new Date() },
+  async moveToTrash(topicId: string,) {
+    return await prisma.$transaction(async (tx) => {
+      // Soft delete MCQs
+      await tx.mCQ.updateMany({
+        where: { topicId },
+        data: { deletedAt: new Date() },
+      });
+
+      // Soft delete TestPapers
+      await tx.testPaper.updateMany({
+        where: { topicId },
+        data: { deletedAt: new Date() },
+      });
+
+      // Soft delete Topic and fetch updated data
+      const topic = await tx.topic.update({
+        where: { id: topicId },
+        data: { deletedAt: new Date() },
+      });
+
+      // Add to Trash
+      await tx.trash.create({
+        data: {
+          tableName: "Topic",
+          entityId: topicId,
+        },
+      });
+
+      // Return the updated topic for frontend confirmation
+      return topic;
     });
-
-    await prisma.trash.create({
-      data: {
-        tableName: "Topic",
-        entityId: topicId,
-        reason: "User requested move to trash",
-      },
-    });
-
-    return topic;
-  },
-
+  }
 };

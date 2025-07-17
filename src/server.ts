@@ -19,6 +19,8 @@ import notificationsRoute from "~/routes/notifications";
 import courseRoute from "~/routes/course.route";
 import topicRoutes from '~/routes/topic.route';
 import testPaperRoutes from "~/routes/testpaper.route";
+import mcqRoutes from "~/routes/mcq.route";
+import trashRoutes from "~/routes/trash.routes";
 
 app.get("/status", (req, res) => res.json({
   time: new Date().toLocaleString(),
@@ -30,6 +32,8 @@ app.use("/notifications", notificationsRoute);
 app.use("/api/courses", courseRoute)
 app.use('/api/topics', topicRoutes);
 app.use('/api/testpapers', testPaperRoutes);
+app.use("/api/trash", trashRoutes);
+app.use("/api/mcqs", mcqRoutes);
 
 // Handle unknown routes
 app.use((req, res) => {
