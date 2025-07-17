@@ -3,13 +3,13 @@ import { trashModel } from "~/models/trash.model";
 
 export const trashController = {
   async list(req: Request, res: Response) {
-    const items = await trashModel.listAll();
+    const items = await trashModel.getAll();
     res.json(items);
   },
 
   async delete(req: Request, res: Response) {
     const { id } = req.params;
-    await trashModel.deleteById(id);
+    await trashModel.permanentlyDelete(id);
     res.json({ message: "Trash item deleted permanently." });
   },
 
