@@ -19,6 +19,18 @@ export const CourseModel = {
     });
   },
 
+  async getTopicsByCourseType(courseType: 'CAInter' | 'CAFinal') {
+    return prisma.course.findFirst({
+      where: { courseType: courseType as any },
+      include: {
+        topics: {
+          where: { deletedAt: null },
+          orderBy: { createdAt: "asc" }
+        }
+      }
+    });
+  },
+
   async create(data: { name: string; courseType: 'CAInter' | 'CAFinal' }) {
     return prisma.course.create({ data });
   },

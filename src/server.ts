@@ -17,6 +17,8 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 
 import notificationsRoute from "~/routes/notifications";
 import courseRoute from "~/routes/course.route";
+import topicRoutes from '~/routes/topic.route';
+import testPaperRoutes from "~/routes/testpaper.route";
 
 app.get("/status", (req, res) => res.json({
   time: new Date().toLocaleString(),
@@ -25,7 +27,21 @@ app.get("/status", (req, res) => res.json({
 }));
 app.get("/logs", (req, res) => res.json(logger.logs));
 app.use("/notifications", notificationsRoute);
-app.use("/courses", courseRoute)
+app.use("/api/courses", courseRoute)
+app.use('/api/topics', topicRoutes);
+app.use('/api/testpapers', testPaperRoutes);
+
+// Handle unknown routes
+app.use((req, res) => {
+  logger.warn(`Unknown route accessed: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    success: false,
+    error: "Route not found",
+    path: req.originalUrl,
+    method: req.method,
+  });
+});
+
 app.listen(PORT, () => {
   logger.log(`Server running on port ${PORT}`);
 });

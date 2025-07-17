@@ -31,6 +31,21 @@ export const CourseController = {
     }
   },
 
+  async getTopicsByCourseType(req: Request, res: Response) {
+    const { courseType } = req.params;
+    if (!["CAInter", "CAFinal"].includes(courseType)) {
+      return res.status(400).json({ error: "Invalid courseType" });
+    }
+
+    const course = await CourseModel.getTopicsByCourseType(courseType as any);
+
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    return res.json(course.topics);
+  },
+
   async create(req: Request, res: Response): Promise<void> {
     try {
       const { name, courseType } = req.body as {

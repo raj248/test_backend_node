@@ -10,6 +10,9 @@ router.get('/', CourseController.getAll);
 // GET /courses/:id - get a specific course
 router.get('/:id', CourseController.getById);
 
+// GET /courses/:courseType/topics - get topics for a specific courseType
+router.get('/:courseType/topics', CourseController.getTopicsByCourseType);
+
 // POST /courses - create a new course
 router.post('/', CourseController.create);
 
