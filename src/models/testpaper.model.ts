@@ -52,7 +52,7 @@ export const TestPaperModel = {
     });
   },
 
-  async softDelete(id: string) {
+  async moveToTrash(id: string) {
     return prisma.testPaper.update({
       where: { id },
       data: { deletedAt: new Date() },

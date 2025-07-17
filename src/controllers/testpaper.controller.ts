@@ -37,10 +37,10 @@ export const TestPaperController = {
     }
   },
 
-  async softDelete(req: Request, res: Response) {
+  async moveToTrash(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      await TestPaperModel.softDelete(id);
+      await TestPaperModel.moveToTrash(id);
       res.json({ success: true });
     } catch (error) {
       console.error(error);
