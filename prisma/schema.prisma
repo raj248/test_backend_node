@@ -13,12 +13,12 @@ enum CourseType {
 }
 
 model Course {
-  id         String    @id @default(cuid())
+  id         String     @id @default(cuid())
   name       String
   courseType CourseType
   topics     Topic[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
   deletedAt  DateTime? // soft delete
 
   @@index([name])
@@ -26,28 +26,31 @@ model Course {
 }
 
 model Topic {
-  id          String      @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
   description String?
-  course      Course      @relation(fields: [courseId], references: [id])
+  course      Course  @relation(fields: [courseId], references: [id])
   courseId    String
-  testPapers  TestPaper[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  deletedAt   DateTime?   // soft delete
+
+  testPapers TestPaper[]
+  mcqs       MCQ[]       @relation("TopicToMCQs") // <-- added inverse relation with explicit name
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // soft delete
 
   @@index([courseId])
   @@index([name])
 }
 
 model TestPaper {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  topic     Topic    @relation(fields: [topicId], references: [id])
+  topic     Topic     @relation(fields: [topicId], references: [id])
   topicId   String
   mcqs      MCQ[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   deletedAt DateTime? // soft delete
 
   @@index([topicId])
@@ -55,17 +58,20 @@ model TestPaper {
 }
 
 model MCQ {
-  id            String    @id @default(cuid())
+  id            String @id @default(cuid())
   question      String
-  options       Json      // { a: "", b: "", c: "", d: "" }
-  correctAnswer String    // "a", "b", "c", "d"
-  topic         Topic     @relation(fields: [topicId], references: [id])
-  topicId       String
-  testPaper     TestPaper @relation(fields: [testPaperId], references: [id])
-  testPaperId   String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime? // soft delete
+  options       Json // { a: "", b: "", c: "", d: "" }
+  correctAnswer String // "a", "b", "c", "d"
+
+  topic   Topic  @relation("TopicToMCQs", fields: [topicId], references: [id])
+  topicId String
+
+  testPaper   TestPaper @relation(fields: [testPaperId], references: [id])
+  testPaperId String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // soft delete
 
   @@index([topicId])
   @@index([testPaperId])
@@ -73,9 +79,9 @@ model MCQ {
 
 model Trash {
   id         String    @id @default(cuid())
-  tableName  String    // "Course", "Topic", "MCQ", "TestPaper"
-  entityId   String    // id of the trashed entity
-  reason     String?   // optional reason for deletion
+  tableName  String // "Course", "Topic", "MCQ", "TestPaper"
+  entityId   String // id of the trashed entity
+  reason     String? // optional reason for deletion
   trashedAt  DateTime  @default(now())
   purgeAfter DateTime? // optional, when to auto-purge
 

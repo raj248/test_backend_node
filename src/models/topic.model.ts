@@ -28,4 +28,22 @@ export const TopicModel = {
       },
     });
   },
+
+  async moveTopicToTrash(topicId: string) {
+    const topic = await prisma.topic.update({
+      where: { id: topicId },
+      data: { deletedAt: new Date() },
+    });
+
+    await prisma.trash.create({
+      data: {
+        tableName: "Topic",
+        entityId: topicId,
+        reason: "User requested move to trash",
+      },
+    });
+
+    return topic;
+  },
+
 };
