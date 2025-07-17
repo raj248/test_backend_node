@@ -6,9 +6,61 @@ const prisma = new PrismaClient();
 
 export const trashModel = {
   async getAll() {
-    return prisma.trash.findMany({
+    const trashItems = await prisma.trash.findMany({
       orderBy: { trashedAt: "desc" },
     });
+
+    const enrichedItems = await Promise.all(
+      trashItems.map(async (item) => {
+        let displayName = "";
+
+        try {
+          switch (item.tableName) {
+            case "Topic": {
+              const topic = await prisma.topic.findUnique({
+                where: { id: item.entityId },
+                select: { name: true },
+              });
+              displayName = topic?.name ?? "(Deleted Topic)";
+              break;
+            }
+            case "TestPaper": {
+              const paper = await prisma.testPaper.findUnique({
+                where: { id: item.entityId },
+                select: { name: true },
+              });
+              displayName = paper?.name ?? "(Deleted TestPaper)";
+              break;
+            }
+            case "MCQ": {
+              const mcq = await prisma.mCQ.findUnique({
+                where: { id: item.entityId },
+                select: { question: true },
+              });
+              displayName = mcq?.question ?? "(Deleted MCQ)";
+              break;
+            }
+            case "Course": {
+              const course = await prisma.course.findUnique({
+                where: { id: item.entityId },
+                select: { name: true },
+              });
+              displayName = course?.name ?? "(Deleted Course)";
+              break;
+            }
+            default:
+              displayName = "(Unknown Entity)";
+          }
+        } catch (error) {
+          console.error(`Error enriching trash item ${item.id}:`, error);
+          displayName = "(Error Fetching Name)";
+        }
+
+        return { ...item, displayName };
+      })
+    );
+
+    return enrichedItems;
   },
 
   async add(tableName: string, entityId: string) {

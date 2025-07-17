@@ -5,12 +5,15 @@ async function main() {
   console.log("🌱 Seeding database...");
 
   // Clean previous data for clean seed (dev only)
-  await prisma.trash.deleteMany();
-  await prisma.mCQ.deleteMany();
-  await prisma.topic.deleteMany();
-  await prisma.testPaper.deleteMany();
-  await prisma.course.deleteMany();
-
+  try {
+    await prisma.trash.deleteMany();
+    await prisma.mCQ.deleteMany();
+    await prisma.testPaper.deleteMany();
+    await prisma.topic.deleteMany();
+    await prisma.course.deleteMany();
+  } catch (e) {
+    console.error("Error cleaning database:", e);
+  }
   // Create Courses
   const caInter = await prisma.course.create({
     data: {
