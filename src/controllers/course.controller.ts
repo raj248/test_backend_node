@@ -1,81 +1,86 @@
-// src/controllers/course.controller.ts
 import { Request, Response } from 'express';
 import { CourseModel } from '~/models/course.model';
 import { logger } from '~/utils/log';
 
 export const CourseController = {
   async getAll(req: Request, res: Response): Promise<void> {
-    try {
-      const courses = await CourseModel.getAll();
-      res.json({ success: true, data: courses });
-    } catch (error) {
-      const err = error as Error;
-      logger.error(`CourseController.getAll: ${err.message}`);
-      res.status(500).json({ success: false, error: err.message });
+    const result = await CourseModel.getAll();
+    if (!result.success) {
+      logger.error(`CourseController.getAll: ${result.error}`);
+      res.status(500).json(result);
+      return;
     }
+    res.json(result);
   },
 
   async getById(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const course = await CourseModel.getById(id);
-      if (!course) {
-        res.status(404).json({ success: false, error: 'Course not found' });
-        return;
-      }
-      res.json({ success: true, data: course });
-    } catch (error) {
-      const err = error as Error;
-      logger.error(`CourseController.getById: ${err.message}`);
-      res.status(500).json({ success: false, error: err.message });
+    const { id } = req.params;
+    const result = await CourseModel.getById(id);
+    if (!result.success) {
+      logger.error(`CourseController.getById: ${result.error}`);
+      res.status(404).json(result);
+      return;
     }
+    res.json(result);
   },
 
-  async getTopicsByCourseType(req: Request, res: Response) {
+  async getTopicsByCourseType(req: Request, res: Response): Promise<void> {
     const { courseType } = req.params;
     if (!["CAInter", "CAFinal"].includes(courseType)) {
-      return res.status(400).json({ error: "Invalid courseType" });
+      res.status(400).json({ success: false, error: "Invalid courseType" });
+      return;
     }
 
-    const course = await CourseModel.getTopicsByCourseType(courseType as any);
+    const result = await CourseModel.getTopicsByCourseType(courseType as "CAInter" | "CAFinal");
 
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
+    if (!result.success) {
+      logger.error(`CourseController.getTopicsByCourseType: ${result.error}`);
+      res.status(404).json(result);
+      return;
     }
 
-    return res.json(course.topics);
+    // Return only the topics for frontend display
+    res.json({ success: true, data: result.data?.topics });
   },
 
   async create(req: Request, res: Response): Promise<void> {
-    try {
-      const { name, courseType } = req.body as {
-        name?: string;
-        courseType?: 'CAInter' | 'CAFinal';
-      };
+    const { name, courseType } = req.body as {
+      name?: string;
+      courseType?: 'CAInter' | 'CAFinal';
+    };
 
-      if (!name || !courseType) {
-        res.status(400).json({ success: false, error: 'name and courseType are required' });
-        return;
-      }
-
-      const course = await CourseModel.create({ name, courseType });
-      res.status(201).json({ success: true, data: course });
-    } catch (error) {
-      const err = error as Error;
-      logger.error(`CourseController.create: ${err.message}`);
-      res.status(500).json({ success: false, error: err.message });
+    if (!name || !courseType) {
+      res.status(400).json({ success: false, error: 'name and courseType are required' });
+      return;
     }
+
+    const result = await CourseModel.create({ name, courseType });
+
+    if (!result.success) {
+      logger.error(`CourseController.create: ${result.error}`);
+      res.status(500).json(result);
+      return;
+    }
+
+    res.status(201).json(result);
   },
 
-  async softDelete(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      await CourseModel.softDelete(id);
-      res.json({ success: true, message: 'Course moved to trash' });
-    } catch (error) {
-      const err = error as Error;
-      logger.error(`CourseController.softDelete: ${err.message}`);
-      res.status(500).json({ success: false, error: err.message });
+  async moveToTrash(req: Request, res: Response): Promise<void> {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ success: false, error: "Course ID is required." });
+      return;
     }
+
+    const result = await CourseModel.moveToTrash(id);
+
+    if (!result.success) {
+      logger.error(`CourseController.moveToTrash: ${result.error}`);
+      res.status(500).json(result);
+      return;
+    }
+
+    res.json(result);
   },
 };

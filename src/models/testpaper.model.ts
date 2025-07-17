@@ -4,58 +4,104 @@ const prisma = new PrismaClient();
 
 export const TestPaperModel = {
   async getById(testPaperId: string) {
-    return prisma.testPaper.findUnique({
-      where: { id: testPaperId },
-      include: {
-        mcqs: {
-          where: { deletedAt: null },
-          orderBy: { createdAt: "asc" },
-        },
-        topic: {
-          include: {
-            course: true,
+    if (!testPaperId) return { success: false, error: "Test Paper ID is required." };
+    try {
+      const testPaper = await prisma.testPaper.findUnique({
+        where: { id: testPaperId },
+        include: {
+          mcqs: {
+            where: { deletedAt: null },
+            orderBy: { createdAt: "asc" },
+          },
+          topic: {
+            include: {
+              course: true,
+            },
           },
         },
-      },
-    });
+      });
+      if (!testPaper) return { success: false, error: "Test Paper not found." };
+      return { success: true, data: testPaper };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to fetch Test Paper." };
+    }
   },
 
   async findByTopicId(topicId: string) {
-    return prisma.testPaper.findMany({
-      where: {
-        topicId,
-        deletedAt: null,
-      },
-      include: {
-        mcqs: {
-          where: { deletedAt: null },
-          select: { id: true }, // lightweight for count/display
+    if (!topicId) return { success: false, error: "Topic ID is required." };
+    try {
+      const testPapers = await prisma.testPaper.findMany({
+        where: {
+          topicId,
+          deletedAt: null,
         },
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
+        include: {
+          mcqs: {
+            where: { deletedAt: null },
+            select: { id: true }, // lightweight
+          },
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+      return { success: true, data: testPapers };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to fetch Test Papers by Topic ID." };
+    }
   },
 
   async getAll() {
-    return prisma.testPaper.findMany({
-      where: { deletedAt: null },
-      orderBy: { createdAt: "asc" },
-      include: { topic: true },
-    });
+    try {
+      const testPapers = await prisma.testPaper.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: "asc" },
+        include: { topic: true },
+      });
+      return { success: true, data: testPapers };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to fetch all Test Papers." };
+    }
   },
 
   async create(data: { name: string; topicId: string }) {
-    return prisma.testPaper.create({
-      data,
-    });
+    if (!data?.name || !data?.topicId)
+      return { success: false, error: "Name and Topic ID are required." };
+    try {
+      const testPaper = await prisma.testPaper.create({ data });
+      return { success: true, data: testPaper };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to create Test Paper." };
+    }
   },
 
   async moveToTrash(id: string) {
-    return prisma.testPaper.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    if (!id) return { success: false, error: "Test Paper ID is required to move to trash." };
+    try {
+      const testPaper = await prisma.testPaper.findUnique({ where: { id } });
+      if (!testPaper) return { success: false, error: "Test Paper not found." };
+
+      const moved = await prisma.$transaction(async (tx) => {
+        const updated = await tx.testPaper.update({
+          where: { id },
+          data: { deletedAt: new Date() },
+        });
+        await tx.trash.create({
+          data: {
+            tableName: "TestPaper",
+            entityId: id,
+          },
+        });
+        return updated;
+      });
+      return { success: true, data: moved };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to move Test Paper to trash." };
+    }
   },
 };

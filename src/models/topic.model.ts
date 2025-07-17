@@ -4,61 +4,86 @@ const prisma = new PrismaClient();
 
 export const TopicModel = {
   async fetchTopicById(topicId: string) {
-    return prisma.topic.findUnique({
-      where: {
-        id: topicId,
-      },
-    })
+    if (!topicId) return { success: false, error: "Topic ID is required." };
+    try {
+      const topic = await prisma.topic.findUnique({
+        where: { id: topicId },
+      });
+      if (!topic) return { success: false, error: "Topic not found." };
+      return { success: true, data: topic };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to fetch Topic." };
+    }
   },
 
   async fetchTestPaperByTopicId(topicId: string) {
-    return prisma.testPaper.findMany({
-      where: {
-        topicId,
-        deletedAt: null,
-      },
-      include: {
-        mcqs: {
-          where: { deletedAt: null },
-          select: { id: true }, // only fetch id for counting
+    if (!topicId) return { success: false, error: "Topic ID is required." };
+    try {
+      const testPapers = await prisma.testPaper.findMany({
+        where: {
+          topicId,
+          deletedAt: null,
         },
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-    });
+        include: {
+          mcqs: {
+            where: { deletedAt: null },
+            select: { id: true }, // for count/display
+          },
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      });
+      return { success: true, data: testPapers };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to fetch Test Papers for Topic." };
+    }
   },
 
-  async moveToTrash(topicId: string,) {
-    return await prisma.$transaction(async (tx) => {
-      // Soft delete MCQs
-      await tx.mCQ.updateMany({
-        where: { topicId },
-        data: { deletedAt: new Date() },
+  async moveToTrash(topicId: string) {
+    if (!topicId) return { success: false, error: "Topic ID is required to move to trash." };
+    try {
+      const topic = await prisma.topic.findUnique({ where: { id: topicId } });
+      if (!topic) return { success: false, error: "Topic not found." };
+
+      const movedTopic = await prisma.$transaction(async (tx) => {
+        const deletedAt = new Date();
+
+        // Soft delete MCQs
+        await tx.mCQ.updateMany({
+          where: { topicId },
+          data: { deletedAt },
+        });
+
+        // Soft delete Test Papers
+        await tx.testPaper.updateMany({
+          where: { topicId },
+          data: { deletedAt },
+        });
+
+        // Soft delete Topic
+        const updatedTopic = await tx.topic.update({
+          where: { id: topicId },
+          data: { deletedAt },
+        });
+
+        // Add to Trash
+        await tx.trash.create({
+          data: {
+            tableName: "Topic",
+            entityId: topicId,
+          },
+        });
+
+        return updatedTopic;
       });
 
-      // Soft delete TestPapers
-      await tx.testPaper.updateMany({
-        where: { topicId },
-        data: { deletedAt: new Date() },
-      });
-
-      // Soft delete Topic and fetch updated data
-      const topic = await tx.topic.update({
-        where: { id: topicId },
-        data: { deletedAt: new Date() },
-      });
-
-      // Add to Trash
-      await tx.trash.create({
-        data: {
-          tableName: "Topic",
-          entityId: topicId,
-        },
-      });
-
-      // Return the updated topic for frontend confirmation
-      return topic;
-    });
-  }
+      return { success: true, data: movedTopic };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to move Topic to trash." };
+    }
+  },
 };

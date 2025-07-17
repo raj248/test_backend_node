@@ -17,6 +17,6 @@ router.get('/:courseType/topics', CourseController.getTopicsByCourseType);
 router.post('/', CourseController.create);
 
 // DELETE /courses/:id - soft delete a course
-router.delete('/:id', CourseController.softDelete);
+router.delete('/:id', CourseController.moveToTrash);
 
 export default router;
