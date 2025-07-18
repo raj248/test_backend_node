@@ -44,7 +44,7 @@ export const TestPaperController = {
 
   async create(req: Request, res: Response) {
     try {
-      const { name, topicId } = req.body;
+      const { name, topicId, description, timeLimitMinutes, totalMarks } = req.body;
 
       if (!name || !topicId) {
         return res.status(400).json({
@@ -53,7 +53,7 @@ export const TestPaperController = {
         });
       }
 
-      const result = await TestPaperModel.create({ name, topicId });
+      const result = await TestPaperModel.create({ name, topicId, description, timeLimitMinutes, totalMarks });
 
       if (!result.success) {
         logger.error(`TestPaperController.create: ${result.error}`);
@@ -64,6 +64,30 @@ export const TestPaperController = {
     } catch (error) {
       const err = error as Error;
       logger.error(`TestPaperController.create: ${err.message}`);
+      res.status(500).json({ success: false, error: "Internal server error" });
+    }
+  },
+
+  async update(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { name, description, timeLimitMinutes, totalMarks } = req.body;
+
+      if (!id) {
+        return res.status(400).json({ success: false, error: "Test paper ID is required." });
+      }
+
+      const result = await TestPaperModel.update(id, { name, description, timeLimitMinutes, totalMarks });
+
+      if (!result.success) {
+        logger.error(`TestPaperController.update: ${result.error}`);
+        return res.status(500).json(result);
+      }
+
+      res.json(result);
+    } catch (error) {
+      const err = error as Error;
+      logger.error(`TestPaperController.update: ${err.message}`);
       res.status(500).json({ success: false, error: "Internal server error" });
     }
   },

@@ -46,9 +46,14 @@ model Topic {
 model TestPaper {
   id        String    @id @default(cuid())
   name      String
+  description String?         // <-- Added
+  timeLimitMinutes Int?       // <-- Added
+  totalMarks Int?             // <-- Added
+
   topic     Topic     @relation(fields: [topicId], references: [id])
   topicId   String
   mcqs      MCQ[]
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime? // soft delete
@@ -56,6 +61,7 @@ model TestPaper {
   @@index([topicId])
   @@index([name])
 }
+
 
 model MCQ {
   id            String @id @default(cuid())

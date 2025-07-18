@@ -67,7 +67,13 @@ export const TestPaperModel = {
     }
   },
 
-  async create(data: { name: string; topicId: string }) {
+  async create(data: {
+    name: string;
+    topicId: string;
+    description?: string;
+    timeLimitMinutes?: number;
+    totalMarks?: number;
+  }) {
     if (!data?.name || !data?.topicId)
       return { success: false, error: "Name and Topic ID are required." };
     try {
@@ -76,6 +82,24 @@ export const TestPaperModel = {
     } catch (error) {
       console.error(error);
       return { success: false, error: "Failed to create Test Paper." };
+    }
+  },
+
+  async update(id: string, data: Partial<{
+    name: string;
+    description: string;
+    timeLimitMinutes: number;
+    totalMarks: number;
+  }>) {
+    try {
+      const testPaper = await prisma.testPaper.update({
+        where: { id },
+        data,
+      });
+      return { success: true, data: testPaper };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to update test paper." };
     }
   },
 
