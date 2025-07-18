@@ -21,6 +21,10 @@ import topicRoutes from '~/routes/topic.route';
 import testPaperRoutes from "~/routes/testpaper.route";
 import mcqRoutes from "~/routes/mcq.route";
 import trashRoutes from "~/routes/trash.routes";
+// import { logResponseMiddleware } from "~/middleware/logResponseMiddleware";
+import { logResponseBody } from "~/middleware/logResponseBody";
+
+app.use(logResponseBody);
 
 app.get("/status", (req, res) => res.json({
   time: new Date().toLocaleString(),

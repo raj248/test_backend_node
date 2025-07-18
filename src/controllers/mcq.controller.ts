@@ -20,11 +20,11 @@ export const mcqController = {
 
   async getById(req: Request, res: Response) {
     try {
-      const { mcqId } = req.params;
-      if (!mcqId) {
+      const { id } = req.params;
+      if (!id) {
         return res.status(400).json({ success: false, error: "MCQ ID is required" });
       }
-      const result = await mcqModel.getById(mcqId);
+      const result = await mcqModel.getById(id);
       if (!result.success || !result.data) {
         logger.error(`mcqController.getById: ${result.error ?? "MCQ not found"}`);
         return res.status(404).json({ success: false, error: result.error ?? "MCQ not found" });
@@ -135,11 +135,11 @@ export const mcqController = {
 
   async moveToTrash(req: Request, res: Response) {
     try {
-      const { mcqId } = req.params;
-      if (!mcqId) {
+      const { id } = req.params;
+      if (!id) {
         return res.status(400).json({ success: false, error: "MCQ ID is required" });
       }
-      const result = await mcqModel.moveToTrash(mcqId);
+      const result = await mcqModel.moveToTrash(id);
       if (!result.success) {
         logger.error(`mcqController.moveToTrash: ${result.error}`);
         return res.status(500).json(result);
