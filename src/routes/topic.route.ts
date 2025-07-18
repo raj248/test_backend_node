@@ -12,6 +12,9 @@ router.get('/:topicId/testpapers', TopicController.fetchTestPaperByTopicId);
 // POST /topics - create a new topic
 router.post("/", TopicController.create);
 
+// PUT /api/topics/:id
+router.put("/:id", TopicController.update);
+
 // POST /topics/:topicId/move-to-trash - move a topic to trash
 router.post('/:topicId/move-to-trash', TopicController.moveTopicToTrash)
 export default router;

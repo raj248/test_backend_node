@@ -40,6 +40,19 @@ export const TopicController = {
     }
   },
 
+  async update(req: Request, res: Response) {
+    const { id } = req.params;
+    const { name, description, courseType } = req.body;
+
+    const result = await TopicModel.update(id, { name, description, courseType });
+
+    if (result.success) {
+      return res.status(200).json(result);
+    } else {
+      return res.status(400).json(result);
+    }
+  },
+
   async moveTopicToTrash(req: Request, res: Response) {
     const { topicId } = req.params;
     const topic = await TopicModel.moveToTrash(topicId);

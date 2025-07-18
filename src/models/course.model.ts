@@ -14,7 +14,7 @@ export const CourseModel = {
       });
       return { success: true, data: courses };
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false, error: "Failed to fetch courses." };
     }
   },
@@ -29,7 +29,7 @@ export const CourseModel = {
       if (!course) return { success: false, error: "Course not found." };
       return { success: true, data: course };
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false, error: "Failed to fetch course." };
     }
   },
@@ -72,7 +72,7 @@ export const CourseModel = {
       };
       return { success: true, data };
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false, error: "Failed to fetch topics by course type." };
     }
   },
@@ -85,7 +85,7 @@ export const CourseModel = {
       const course = await prisma.course.create({ data });
       return { success: true, data: course };
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false, error: "Failed to create course." };
     }
   },
@@ -103,7 +103,7 @@ export const CourseModel = {
 
       return { success: true, data: deletedCourse };
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false, error: "Failed to delete course." };
     }
   },

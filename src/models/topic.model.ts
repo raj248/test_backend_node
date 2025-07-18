@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { logger } from '~/utils/log';
 
 const prisma = new PrismaClient();
 
@@ -12,7 +13,7 @@ export const TopicModel = {
       if (!topic) return { success: false, error: "Topic not found." };
       return { success: true, data: topic };
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false, error: "Failed to fetch Topic." };
     }
   },
@@ -37,7 +38,7 @@ export const TopicModel = {
       });
       return { success: true, data: testPapers };
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false, error: "Failed to fetch Test Papers for Topic." };
     }
   },
@@ -67,8 +68,51 @@ export const TopicModel = {
 
       return { success: true, data: topic };
     } catch (error) {
-      console.error("Topic create error:", error);
+      logger.error("Topic create error:" + error);
       return { success: false, error: "Failed to create topic." };
+    }
+  },
+
+  async update(
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      courseType?: "CAInter" | "CAFinal";
+    }
+  ) {
+    if (!id) {
+      return { success: false, error: "Topic ID is required." };
+    }
+
+    try {
+      const updateData: Record<string, any> = {};
+
+      if (data.name) updateData.name = data.name;
+      if (data.description !== undefined) updateData.description = data.description;
+
+      if (data.courseType) {
+        const course = await prisma.course.findFirst({
+          where: { courseType: data.courseType },
+          select: { id: true },
+        });
+
+        if (!course) {
+          return { success: false, error: `Course with type ${data.courseType} not found.` };
+        }
+
+        updateData.courseId = course.id;
+      }
+
+      const updatedTopic = await prisma.topic.update({
+        where: { id },
+        data: updateData,
+      });
+
+      return { success: true, data: updatedTopic };
+    } catch (error) {
+      logger.error("Topic update error:" + error);
+      return { success: false, error: "Failed to update topic." };
     }
   },
 
@@ -112,7 +156,7 @@ export const TopicModel = {
 
       return { success: true, data: movedTopic };
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false, error: "Failed to move Topic to trash." };
     }
   },
