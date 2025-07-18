@@ -1,119 +1,54 @@
 import { PrismaClient } from "@prisma/client";
+import { coursesData, topicsData, testPaperData, mcqSamples } from "./seed-data";
+
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // Clean previous data for clean seed (dev only)
-  try {
-    await prisma.trash.deleteMany();
-    await prisma.mCQ.deleteMany();
-    await prisma.testPaper.deleteMany();
-    await prisma.topic.deleteMany();
-    await prisma.course.deleteMany();
-  } catch (e) {
-    console.error("Error cleaning database:", e);
+  await prisma.trash.deleteMany();
+  await prisma.mCQ.deleteMany();
+  await prisma.testPaper.deleteMany();
+  await prisma.topic.deleteMany();
+  await prisma.course.deleteMany();
+
+  // Seed Courses
+  const courses = await Promise.all(
+    coursesData.map((course) => prisma.course.create({ data: course }))
+  );
+
+  const courseMap = Object.fromEntries(courses.map((c) => [c.name, c.id]));
+
+  // Seed Topics
+  const topics = await Promise.all(
+    topicsData(courseMap).map((topic) => prisma.topic.create({ data: topic }))
+  );
+
+  // Seed Test Papers
+  const testPapers: any[] = [];
+  for (const topic of topics) {
+    const papers = await Promise.all(
+      testPaperData(topic.id, topic.name).map((paper) =>
+        prisma.testPaper.create({ data: paper })
+      )
+    );
+    testPapers.push(...papers);
   }
-  // Create Courses
-  const caInter = await prisma.course.create({
-    data: {
-      name: "CA Inter",
-      courseType: "CAInter",
-    },
-  });
 
-  const caFinal = await prisma.course.create({
-    data: {
-      name: "CA Final",
-      courseType: "CAFinal",
-    },
-  });
-
-  // Create Topics
-  const accountingTopic = await prisma.topic.create({
-    data: {
-      name: "Accounting Basics",
-      description: "Learn the fundamentals of accounting for CA Inter.",
-      courseId: caInter.id,
-    },
-  });
-
-  const auditingTopic = await prisma.topic.create({
-    data: {
-      name: "Auditing Principles",
-      description: "Understand auditing standards for CA Final.",
-      courseId: caFinal.id,
-    },
-  });
-
-  // Create Test Papers
-  const testPaper1 = await prisma.testPaper.create({
-    data: {
-      name: "Test Paper 1 - Riddles",
-      topicId: accountingTopic.id,
-    },
-  });
-
-  const testPaper2 = await prisma.testPaper.create({
-    data: {
-      name: "Test Paper 2 - Advanced Riddles",
-      topicId: auditingTopic.id,
-    },
-  });
-
-  // Create MCQs with riddles
-  await prisma.mCQ.createMany({
-    data: [
-      {
-        question: "I speak without a mouth and hear without ears. What am I?",
-        options: {
-          a: "An echo",
-          b: "A shadow",
-          c: "A dream",
-          d: "A river",
+  // Seed MCQs
+  for (const paper of testPapers) {
+    for (const mcq of mcqSamples) {
+      await prisma.mCQ.create({
+        data: {
+          question: mcq.question,
+          options: mcq.options,
+          correctAnswer: mcq.correctAnswer,
+          topic: { connect: { id: paper.topicId } },
+          testPaper: { connect: { id: paper.id } },
         },
-        correctAnswer: "a",
-        topicId: accountingTopic.id,
-        testPaperId: testPaper1.id,
-      },
-      {
-        question: "What has keys but can’t open locks?",
-        options: {
-          a: "A map",
-          b: "A piano",
-          c: "A code",
-          d: "A clock",
-        },
-        correctAnswer: "b",
-        topicId: accountingTopic.id,
-        testPaperId: testPaper1.id,
-      },
-      {
-        question: "What comes once in a minute, twice in a moment, but never in a thousand years?",
-        options: {
-          a: "The letter M",
-          b: "A breath",
-          c: "A second",
-          d: "A star",
-        },
-        correctAnswer: "a",
-        topicId: auditingTopic.id,
-        testPaperId: testPaper2.id,
-      },
-      {
-        question: "I have branches, but no fruit, trunk or leaves. What am I?",
-        options: {
-          a: "A bank",
-          b: "A library",
-          c: "A river",
-          d: "A mountain",
-        },
-        correctAnswer: "a",
-        topicId: auditingTopic.id,
-        testPaperId: testPaper2.id,
-      },
-    ],
-  });
+      });
+    }
+  }
 
   console.log("✅ Seeding complete!");
 }
