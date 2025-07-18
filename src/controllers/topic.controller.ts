@@ -24,6 +24,22 @@ export const TopicController = {
     }
   },
 
+  async create(req: Request, res: Response) {
+    const { name, description, courseType } = req.body;
+
+    const result = await TopicModel.create({
+      name,
+      description,
+      courseType,
+    });
+
+    if (result.success) {
+      return res.status(201).json(result);
+    } else {
+      return res.status(400).json(result);
+    }
+  },
+
   async moveTopicToTrash(req: Request, res: Response) {
     const { topicId } = req.params;
     const topic = await TopicModel.moveToTrash(topicId);

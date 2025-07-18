@@ -42,6 +42,36 @@ export const TopicModel = {
     }
   },
 
+  async create(data: { name: string; description?: string; courseType: "CAInter" | "CAFinal" }) {
+    if (!data?.name || !data?.courseType) {
+      return { success: false, error: "Name and course type are required." };
+    }
+    try {
+      // Find course by courseType
+      const course = await prisma.course.findFirst({
+        where: { courseType: data.courseType },
+        select: { id: true },
+      });
+
+      if (!course) {
+        return { success: false, error: `Course with type ${data.courseType} not found.` };
+      }
+
+      const topic = await prisma.topic.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          courseId: course.id,
+        },
+      });
+
+      return { success: true, data: topic };
+    } catch (error) {
+      console.error("Topic create error:", error);
+      return { success: false, error: "Failed to create topic." };
+    }
+  },
+
   async moveToTrash(topicId: string) {
     if (!topicId) return { success: false, error: "Topic ID is required to move to trash." };
     try {

@@ -1,5 +1,6 @@
 // src/models/course.model.ts
 import { PrismaClient } from '@prisma/client';
+import { logger } from '~/utils/log';
 
 const prisma = new PrismaClient();
 
@@ -35,6 +36,7 @@ export const CourseModel = {
 
   async getTopicsByCourseType(courseType: 'CAInter' | 'CAFinal') {
     if (!courseType) return { success: false, error: "Course type is required." };
+
     try {
       const course = await prisma.course.findFirst({
         where: { courseType },
@@ -42,11 +44,33 @@ export const CourseModel = {
           topics: {
             where: { deletedAt: null },
             orderBy: { createdAt: "asc" },
+            include: {
+              _count: {
+                select: { testPapers: true },
+              },
+            },
           },
         },
       });
+
       if (!course) return { success: false, error: "Course with specified type not found." };
-      return { success: true, data: course };
+
+      // Map to clean JSON serializable structure
+      const data = {
+        ...course,
+        topics: course.topics.map(topic => ({
+          id: topic.id,
+          name: topic.name,
+          description: topic.description,
+          courseId: topic.courseId,
+          courseType: courseType,
+          createdAt: topic.createdAt,
+          updatedAt: topic.updatedAt,
+          deletedAt: topic.deletedAt,
+          testPaperCount: topic._count.testPapers,
+        })),
+      };
+      return { success: true, data };
     } catch (error) {
       console.error(error);
       return { success: false, error: "Failed to fetch topics by course type." };
