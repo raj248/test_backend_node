@@ -14,10 +14,10 @@ export const TestPaperController = {
 
       if (!result.success || !result.data) {
         logger.error(`TestPaperController.getById: ${result.error ?? "Test paper not found"}`);
-        return res.status(404).json({ success: false, error: result.error ?? "Test paper not found" });
+        return res.status(404).json(result);
       }
 
-      res.json({ success: true, data: result.data });
+      res.json(result);
     } catch (error) {
       const err = error as Error;
       logger.error(`TestPaperController.getById: ${err.message}`);

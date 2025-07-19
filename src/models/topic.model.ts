@@ -29,14 +29,26 @@ export const TopicModel = {
         include: {
           mcqs: {
             where: { deletedAt: null },
-            select: { id: true }, // for count/display
+            select: {
+              id: true,
+              marks: true, // include marks to calculate total
+            },
           },
         },
         orderBy: {
           createdAt: "asc",
         },
       });
-      return { success: true, data: testPapers };
+
+      // Calculate totalMarks and mcq count per test paper
+      const enrichedTestPapers = testPapers.map((tp) => ({
+        ...tp,
+        totalMarks: tp.mcqs.reduce((sum, mcq) => sum + (mcq.marks ?? 0), 0),
+        mcqCount: tp.mcqs.length,
+        mcqs: undefined, // optionally remove raw mcqs if you only want counts
+      }));
+
+      return { success: true, data: enrichedTestPapers };
     } catch (error) {
       logger.error(error);
       return { success: false, error: "Failed to fetch Test Papers for Topic." };

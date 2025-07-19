@@ -45,6 +45,8 @@ async function main() {
           correctAnswer: mcq.correctAnswer,
           topic: { connect: { id: paper.topicId } },
           testPaper: { connect: { id: paper.id } },
+          marks: mcq.marks,
+          explanation: mcq.explanation,
         },
       });
     }

@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const TestPaperModel = {
+
   async getById(testPaperId: string) {
     if (!testPaperId) return { success: false, error: "Test Paper ID is required." };
     try {
@@ -20,13 +21,27 @@ export const TestPaperModel = {
           },
         },
       });
+
       if (!testPaper) return { success: false, error: "Test Paper not found." };
-      return { success: true, data: testPaper };
+
+      // Calculate total marks from MCQs
+      const totalMarks = testPaper.mcqs.reduce((sum, mcq) => {
+        return sum + (mcq.marks ?? 0);
+      }, 0);
+
+      return {
+        success: true,
+        data: {
+          ...testPaper,
+          totalMarks, // attach computed totalMarks here
+        },
+      };
     } catch (error) {
       console.error(error);
       return { success: false, error: "Failed to fetch Test Paper." };
     }
   },
+
 
   async findByTopicId(topicId: string) {
     if (!topicId) return { success: false, error: "Topic ID is required." };
