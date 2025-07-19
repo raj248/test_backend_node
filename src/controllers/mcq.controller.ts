@@ -97,7 +97,7 @@ export const mcqController = {
   async create(req: Request, res: Response) {
     try {
       const mcqData = req.body;
-      if (!mcqData?.question || !mcqData?.options || !mcqData?.correctAnswer || !mcqData?.topicId || !mcqData?.testPaperId) {
+      if (!mcqData?.question || !mcqData?.options || !mcqData?.correctAnswer || !mcqData?.topicId || !mcqData?.testPaperId || !mcqData?.marks || !mcqData?.explanation) {
         return res.status(400).json({ success: false, error: "Missing required fields to create MCQ" });
       }
       const result = await mcqModel.create(mcqData);

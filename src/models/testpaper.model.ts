@@ -87,7 +87,6 @@ export const TestPaperModel = {
     topicId: string;
     description?: string;
     timeLimitMinutes?: number;
-    totalMarks?: number;
   }) {
     if (!data?.name || !data?.topicId)
       return { success: false, error: "Name and Topic ID are required." };
@@ -104,7 +103,7 @@ export const TestPaperModel = {
     name: string;
     description: string;
     timeLimitMinutes: number;
-    totalMarks: number;
+    topicId: string;
   }>) {
     try {
       const testPaper = await prisma.testPaper.update({

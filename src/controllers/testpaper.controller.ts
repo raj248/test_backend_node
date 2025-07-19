@@ -44,7 +44,7 @@ export const TestPaperController = {
 
   async create(req: Request, res: Response) {
     try {
-      const { name, topicId, description, timeLimitMinutes, totalMarks } = req.body;
+      const { name, topicId, description, timeLimitMinutes } = req.body;
 
       if (!name || !topicId) {
         return res.status(400).json({
@@ -53,7 +53,7 @@ export const TestPaperController = {
         });
       }
 
-      const result = await TestPaperModel.create({ name, topicId, description, timeLimitMinutes, totalMarks });
+      const result = await TestPaperModel.create({ name, topicId, description, timeLimitMinutes });
 
       if (!result.success) {
         logger.error(`TestPaperController.create: ${result.error}`);
@@ -71,13 +71,13 @@ export const TestPaperController = {
   async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { name, description, timeLimitMinutes, totalMarks } = req.body;
+      const { name, description, timeLimitMinutes, topicId } = req.body;
 
       if (!id) {
         return res.status(400).json({ success: false, error: "Test paper ID is required." });
       }
 
-      const result = await TestPaperModel.update(id, { name, description, timeLimitMinutes, totalMarks });
+      const result = await TestPaperModel.update(id, { name, description, timeLimitMinutes, topicId });
 
       if (!result.success) {
         logger.error(`TestPaperController.update: ${result.error}`);
