@@ -90,6 +90,8 @@ export const mcqModel = {
   async update(mcqId: string, data: Partial<{
     question: string;
     options: Record<string, string>;
+    explanation: string;
+    marks: number;
     correctAnswer: string;
   }>) {
     if (!mcqId) return { success: false, error: "MCQ ID is required." };
