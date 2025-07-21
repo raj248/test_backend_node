@@ -18,7 +18,7 @@ export const TopicModel = {
     }
   },
 
-  async fetchTestPaperByTopicId(topicId: string) {
+  async fetchTestPapersByTopicId(topicId: string) {
     if (!topicId) return { success: false, error: "Topic ID is required." };
     try {
       const testPapers = await prisma.testPaper.findMany({

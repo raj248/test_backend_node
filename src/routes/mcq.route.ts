@@ -15,9 +15,6 @@ router.get("/testpaper/:testPaperId", mcqController.getByTestPaperId);
 // Get MCQs by Topic ID
 router.get("/topic/:topicId", mcqController.getByTopicId);
 
-// GET MCQs for Test
-router.get("/test/:testPaperId", mcqController.getForTest);
-
 // Create MCQ
 router.post("/", mcqController.create);
 

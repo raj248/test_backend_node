@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/:topicId', TopicController.fetchTopicById);
 
 // GET /topics/:topicId/testpapers -get all testpaper by topic id
-router.get('/:topicId/testpapers', TopicController.fetchTestPaperByTopicId);
+router.get('/:topicId/testpapers', TopicController.fetchTestPapersByTopicId);
 
 // POST /topics - create a new topic
 router.post("/", TopicController.create);

@@ -3,6 +3,24 @@ import { TestPaperModel } from "~/models/testpaper.model";
 import { logger } from "~/utils/log";
 
 export const TestPaperController = {
+
+  async getAll(req: Request, res: Response) {
+    try {
+      const result = await TestPaperModel.getAll();
+
+      if (!result.success) {
+        logger.error(`TestPaperController.getAll: ${result.error}`);
+        return res.status(500).json(result);
+      }
+
+      res.json(result);
+    } catch (error) {
+      const err = error as Error;
+      logger.error(`TestPaperController.getAll: ${err.message}`);
+      res.status(500).json({ success: false, error: "Internal server error" });
+    }
+  },
+
   async getById(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -25,20 +43,22 @@ export const TestPaperController = {
     }
   },
 
-  async getAll(req: Request, res: Response) {
+  async getForTest(req: Request, res: Response) {
     try {
-      const result = await TestPaperModel.getAll();
-
+      const { testPaperId } = req.params;
+      if (!testPaperId) {
+        return res.status(400).json({ success: false, error: "Test paper ID is required" });
+      }
+      const result = await TestPaperModel.getForTest(testPaperId);
       if (!result.success) {
-        logger.error(`TestPaperController.getAll: ${result.error}`);
+        logger.error(`mcqController.getForTest: ${result.error}`);
         return res.status(500).json(result);
       }
-
       res.json(result);
     } catch (error) {
       const err = error as Error;
-      logger.error(`TestPaperController.getAll: ${err.message}`);
-      res.status(500).json({ success: false, error: "Internal server error" });
+      logger.error(`mcqController.getForTest: ${err.message}`);
+      res.status(500).json({ success: false, error: "Failed to fetch MCQs for test" });
     }
   },
 

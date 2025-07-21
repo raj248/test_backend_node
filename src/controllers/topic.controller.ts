@@ -13,10 +13,10 @@ export const TopicController = {
     }
   },
 
-  async fetchTestPaperByTopicId(req: Request, res: Response) {
+  async fetchTestPapersByTopicId(req: Request, res: Response) {
     try {
       const { topicId } = req.params;
-      const testPapers = await TopicModel.fetchTestPaperByTopicId(topicId);
+      const testPapers = await TopicModel.fetchTestPapersByTopicId(topicId);
       res.json(testPapers);
     } catch (error) {
       console.error(error);

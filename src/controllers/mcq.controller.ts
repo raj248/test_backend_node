@@ -75,25 +75,6 @@ export const mcqController = {
     }
   },
 
-  async getForTest(req: Request, res: Response) {
-    try {
-      const { testPaperId } = req.params;
-      if (!testPaperId) {
-        return res.status(400).json({ success: false, error: "Test paper ID is required" });
-      }
-      const result = await mcqModel.getForTest(testPaperId);
-      if (!result.success) {
-        logger.error(`mcqController.getForTest: ${result.error}`);
-        return res.status(500).json(result);
-      }
-      res.json(result);
-    } catch (error) {
-      const err = error as Error;
-      logger.error(`mcqController.getForTest: ${err.message}`);
-      res.status(500).json({ success: false, error: "Failed to fetch MCQs for test" });
-    }
-  },
-
   async create(req: Request, res: Response) {
     try {
       const mcqData = req.body;

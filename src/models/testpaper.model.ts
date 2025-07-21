@@ -3,6 +3,19 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const TestPaperModel = {
+  async getAll() {
+    try {
+      const testPapers = await prisma.testPaper.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: "asc" },
+        include: { topic: true },
+      });
+      return { success: true, data: testPapers };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to fetch all Test Papers." };
+    }
+  },
 
   async getById(testPaperId: string) {
     if (!testPaperId) return { success: false, error: "Test Paper ID is required." };
@@ -42,7 +55,6 @@ export const TestPaperModel = {
     }
   },
 
-
   async findByTopicId(topicId: string) {
     if (!topicId) return { success: false, error: "Topic ID is required." };
     try {
@@ -68,19 +80,44 @@ export const TestPaperModel = {
     }
   },
 
-  async getAll() {
+  async getForTest(testPaperId: string) {
+    if (!testPaperId) return { success: false, error: "Test Paper ID is required." };
     try {
-      const testPapers = await prisma.testPaper.findMany({
-        where: { deletedAt: null },
-        orderBy: { createdAt: "asc" },
-        include: { topic: true },
+      const testPaper = await prisma.testPaper.findUnique({
+        where: { id: testPaperId, deletedAt: null },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          timeLimitMinutes: true,
+          topicId: true,
+          createdAt: true,
+          updatedAt: true,
+          mcqs: {
+            where: { deletedAt: null },
+            orderBy: { createdAt: "asc" },
+            select: {
+              id: true,
+              question: true,
+              options: true,
+              marks: true,
+            },
+          },
+        },
       });
-      return { success: true, data: testPapers };
+
+      if (!testPaper) {
+        return { success: false, error: "Test Paper not found." };
+      }
+
+      return { success: true, data: testPaper };
     } catch (error) {
       console.error(error);
-      return { success: false, error: "Failed to fetch all Test Papers." };
+      return { success: false, error: "Failed to fetch test paper and MCQs." };
     }
   },
+
+
 
   async create(data: {
     name: string;

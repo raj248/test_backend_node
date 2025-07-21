@@ -56,21 +56,6 @@ export const mcqModel = {
     }
   },
 
-  async getForTest(testPaperId: string) {
-    if (!testPaperId) return { success: false, error: "Test Paper ID is required." };
-    try {
-      const mcqs = await prisma.mCQ.findMany({
-        where: { testPaperId, deletedAt: null },
-        orderBy: { createdAt: "asc" },
-        select: { id: true, question: true, options: true },
-      });
-      return { success: true, data: mcqs };
-    } catch (error) {
-      console.error(error);
-      return { success: false, error: "Failed to fetch MCQs for test." };
-    }
-  },
-
   async create(data: {
     question: string;
     options: Record<string, string>;
