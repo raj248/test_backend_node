@@ -45,11 +45,11 @@ export const TestPaperController = {
 
   async getForTest(req: Request, res: Response) {
     try {
-      const { testPaperId } = req.params;
-      if (!testPaperId) {
+      const { id } = req.params;
+      if (!id) {
         return res.status(400).json({ success: false, error: "Test paper ID is required" });
       }
-      const result = await TestPaperModel.getForTest(testPaperId);
+      const result = await TestPaperModel.getForTest(id);
       if (!result.success) {
         logger.error(`mcqController.getForTest: ${result.error}`);
         return res.status(500).json(result);
@@ -60,6 +60,22 @@ export const TestPaperController = {
       logger.error(`mcqController.getForTest: ${err.message}`);
       res.status(500).json({ success: false, error: "Failed to fetch MCQs for test" });
     }
+  },
+
+  async getTestPaperAnswersController(req: Request, res: Response) {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ success: false, error: "Test Paper ID is required." });
+    }
+
+    const result = await TestPaperModel.getTestPaperAnswersAndExplanations(id);
+
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+
+    return res.status(200).json(result);
   },
 
   async create(req: Request, res: Response) {

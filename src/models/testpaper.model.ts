@@ -110,14 +110,54 @@ export const TestPaperModel = {
         return { success: false, error: "Test Paper not found." };
       }
 
-      return { success: true, data: testPaper };
+      const totalMarks = testPaper.mcqs.reduce((sum, mcq) => {
+        return sum + (mcq.marks ?? 0);
+      }, 0);
+
+      return {
+        success: true,
+        data: {
+          ...testPaper,
+          totalMarks, // attach computed totalMarks here
+        }
+      };
     } catch (error) {
       console.error(error);
       return { success: false, error: "Failed to fetch test paper and MCQs." };
     }
   },
 
+  async getTestPaperAnswersAndExplanations(testPaperId: string) {
+    try {
+      const testPaper = await prisma.testPaper.findUnique({
+        where: { id: testPaperId },
+        include: {
+          mcqs: {
+            select: {
+              id: true,
+              correctAnswer: true,
+              explanation: true,
+            },
+          },
+        },
+      });
 
+      if (!testPaper) {
+        return { success: false, error: "Test Paper not found." };
+      }
+
+      const data = testPaper.mcqs.map(mcq => ({
+        id: mcq.id,
+        answer: mcq.correctAnswer,
+        explanation: mcq.explanation ?? "",
+      }));
+
+      return { success: true, data };
+    } catch (error) {
+      console.error(error);
+      return { success: false, error: "Failed to fetch answers and explanations." };
+    }
+  },
 
   async create(data: {
     name: string;
