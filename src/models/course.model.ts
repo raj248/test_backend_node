@@ -46,7 +46,11 @@ export const CourseModel = {
             orderBy: { createdAt: "asc" },
             include: {
               _count: {
-                select: { testPapers: true },
+                select: {
+                  testPapers: true,
+                  notes: true,
+                  videoNotes: true,
+                },
               },
             },
           },
@@ -55,7 +59,7 @@ export const CourseModel = {
 
       if (!course) return { success: false, error: "Course with specified type not found." };
 
-      // Map to clean JSON serializable structure
+      // Clean JSON-serializable structure with counts
       const data = {
         ...course,
         topics: course.topics.map(topic => ({
@@ -68,14 +72,18 @@ export const CourseModel = {
           updatedAt: topic.updatedAt,
           deletedAt: topic.deletedAt,
           testPaperCount: topic._count.testPapers,
+          noteCount: topic._count.notes,
+          videoNoteCount: topic._count.videoNotes,
         })),
       };
+
       return { success: true, data };
     } catch (error) {
       logger.error(error);
       return { success: false, error: "Failed to fetch topics by course type." };
     }
   },
+
 
   async create(data: { name: string; courseType: 'CAInter' | 'CAFinal' }) {
     if (!data?.name || !data?.courseType) {
