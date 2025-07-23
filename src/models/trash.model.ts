@@ -1,8 +1,7 @@
-// src/server/models/trash.model.ts
-
 import { PrismaClient } from "@prisma/client";
-
 const prisma = new PrismaClient();
+import fs from "fs";
+import path from "path";
 
 export const trashModel = {
   async getAll() {
@@ -40,6 +39,12 @@ export const trashModel = {
                   where: { id: item.entityId },
                   select: { name: true },
                 }))?.name ?? "(Deleted Course)";
+                break;
+              case "Note":
+                displayName = (await prisma.note.findUnique({
+                  where: { id: item.entityId },
+                  select: { name: true },
+                }))?.name ?? "(Deleted Note)";
                 break;
               default:
                 displayName = "(Unknown Entity)";
@@ -112,7 +117,16 @@ export const trashModel = {
               where: { topicId: entityId },
               data: { deletedAt: null },
             });
+            await tx.note.updateMany({
+              where: { topicId: entityId },
+              data: { deletedAt: null },
+            });
+            await tx.videoNote.updateMany({
+              where: { topicId: entityId },
+              data: { deletedAt: null },
+            });
             break;
+
           case "TestPaper":
             await tx.testPaper.update({ where: { id: entityId }, data: { deletedAt: null } });
             await tx.mCQ.updateMany({
@@ -120,9 +134,11 @@ export const trashModel = {
               data: { deletedAt: null },
             });
             break;
+
           case "MCQ":
             await tx.mCQ.update({ where: { id: entityId }, data: { deletedAt: null } });
             break;
+
           case "Course":
             await tx.course.update({ where: { id: entityId }, data: { deletedAt: null } });
             await tx.topic.updateMany({
@@ -142,7 +158,24 @@ export const trashModel = {
               where: { topicId: { in: topicIds } },
               data: { deletedAt: null },
             });
+            await tx.note.updateMany({
+              where: { topicId: { in: topicIds } },
+              data: { deletedAt: null },
+            });
+            await tx.videoNote.updateMany({
+              where: { topicId: { in: topicIds } },
+              data: { deletedAt: null },
+            });
             break;
+
+          case "Note":
+            await tx.note.update({ where: { id: entityId }, data: { deletedAt: null } });
+            break;
+
+          case "VideoNote":
+            await tx.videoNote.update({ where: { id: entityId }, data: { deletedAt: null } });
+            break;
+
           default:
             throw new Error(`Unknown table ${tableName}`);
         }
@@ -165,21 +198,27 @@ export const trashModel = {
       if (!trash) return { success: false, error: "Trash item not found." };
 
       const { tableName, entityId } = trash;
+      let deletedNoteFileUrl: string | null = null; // for post-deletion file cleanup
 
       await prisma.$transaction(async (tx) => {
         switch (tableName) {
           case "Topic":
             await tx.mCQ.deleteMany({ where: { topicId: entityId } });
             await tx.testPaper.deleteMany({ where: { topicId: entityId } });
+            await tx.note.deleteMany({ where: { topicId: entityId } });
+            await tx.videoNote.deleteMany({ where: { topicId: entityId } });
             await tx.topic.delete({ where: { id: entityId } });
             break;
+
           case "TestPaper":
             await tx.mCQ.deleteMany({ where: { testPaperId: entityId } });
             await tx.testPaper.delete({ where: { id: entityId } });
             break;
+
           case "MCQ":
             await tx.mCQ.delete({ where: { id: entityId } });
             break;
+
           case "Course":
             const topics = await tx.topic.findMany({
               where: { courseId: entityId },
@@ -188,9 +227,27 @@ export const trashModel = {
             const topicIds = topics.map((t) => t.id);
             await tx.mCQ.deleteMany({ where: { topicId: { in: topicIds } } });
             await tx.testPaper.deleteMany({ where: { topicId: { in: topicIds } } });
+            await tx.note.deleteMany({ where: { topicId: { in: topicIds } } });
+            await tx.videoNote.deleteMany({ where: { topicId: { in: topicIds } } });
             await tx.topic.deleteMany({ where: { courseId: entityId } });
             await tx.course.delete({ where: { id: entityId } });
             break;
+
+          case "Note":
+            const note = await tx.note.findUnique({
+              where: { id: entityId },
+              select: { fileUrl: true },
+            });
+            if (note?.fileUrl) {
+              deletedNoteFileUrl = note.fileUrl; // capture for deletion after transaction
+            }
+            await tx.note.delete({ where: { id: entityId } });
+            break;
+
+          case "VideoNote":
+            await tx.videoNote.delete({ where: { id: entityId } });
+            break;
+
           default:
             throw new Error(`Unknown table ${tableName}`);
         }
@@ -198,10 +255,22 @@ export const trashModel = {
         await tx.trash.delete({ where: { id: trashId } });
       });
 
+      // Clean up the physical file if needed after successful DB deletion
+      if (deletedNoteFileUrl) {
+        const filePath = path.join(process.cwd(), deletedNoteFileUrl);
+        try {
+          await fs.promises.unlink(filePath);
+          console.log(`Deleted file at ${filePath}`);
+        } catch (fileError) {
+          console.error(`Failed to delete file at ${filePath}`, fileError);
+        }
+      }
+
       return { success: true, message: "Trash item permanently deleted." };
     } catch (error) {
       console.error(error);
       return { success: false, error: "Failed to permanently delete trash item." };
     }
   },
+
 };

@@ -21,7 +21,9 @@ import topicRoutes from '~/routes/topic.route';
 import testPaperRoutes from "~/routes/testpaper.route";
 import mcqRoutes from "~/routes/mcq.route";
 import trashRoutes from "~/routes/trash.routes";
-// import { logResponseMiddleware } from "~/middleware/logResponseMiddleware";
+import noteRoutes from "~/routes/note.route";
+import videoNoteRoutes from "~/routes/videonote.route";
+
 import { logResponseBody } from "~/middleware/logResponseBody";
 
 app.use(logResponseBody);
@@ -38,6 +40,11 @@ app.use('/api/topics', topicRoutes);
 app.use('/api/testpapers', testPaperRoutes);
 app.use("/api/trash", trashRoutes);
 app.use("/api/mcqs", mcqRoutes);
+app.use("/api/notes", noteRoutes);
+app.use("/api/videonotes", videoNoteRoutes)
+
+// Serve uploaded files statically if needed:
+app.use('/uploads', express.static('uploads'));
 
 // Handle unknown routes
 app.use((req, res) => {

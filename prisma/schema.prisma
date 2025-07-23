@@ -61,7 +61,6 @@ model TestPaper {
   @@index([name])
 }
 
-
 model MCQ {
   id            String @id @default(cuid())
   question      String
@@ -84,9 +83,39 @@ model MCQ {
   @@index([testPaperId])
 }
 
+model Note {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  fileUrl     String
+  fileName    String
+  fileSize    Int
+  mimeType    String
+  topicId     String
+  courseType  CourseType
+  createdAt   DateTime @default(now())
+  deletedAt   DateTime? // soft delete
+
+  @@index([topicId])
+  @@index([courseType])
+}
+
+model VideoNote {
+  id          String   @id @default(cuid())
+  url         String
+  topicId     String
+  courseType  CourseType
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime? // soft delete
+
+  @@index([topicId])
+  @@index([courseType])
+}
+
 model Trash {
   id         String    @id @default(cuid())
-  tableName  String // "Course", "Topic", "MCQ", "TestPaper"
+  tableName  String // "Course", "Topic", "MCQ", "TestPaper", "Note"
   entityId   String // id of the trashed entity
   trashedAt  DateTime  @default(now())
   purgeAfter DateTime? // optional, when to auto-purge
