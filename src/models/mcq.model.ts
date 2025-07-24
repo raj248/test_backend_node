@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client';
+import { sendNotification } from "~/utils/notificationUtil";
+import admin from "firebase-admin";
 
 const prisma = new PrismaClient();
 
@@ -65,6 +67,29 @@ export const mcqModel = {
   }) {
     try {
       const mcq = await prisma.mCQ.create({ data });
+
+      // Prepare and send notification after creation
+      const message: admin.messaging.Message = {
+        topic: "all-devices",
+        notification: {
+          title: "📝 New Question Added",
+          body: `A new question has been added to your test.`,
+        },
+        data: {
+          mcqId: mcq.id,
+          topicId: mcq.topicId,
+          testPaperId: mcq.testPaperId,
+          type: "NEW_QUESTION",
+        },
+        android: { priority: "high" },
+        apns: { headers: { "apns-priority": "10" } },
+      };
+
+      // Fire-and-forget; do not block MCQ creation if FCM fails
+      sendNotification(message).catch((err) => {
+        console.error("Failed to send notification for new MCQ:", err);
+      });
+
       return { success: true, data: mcq };
     } catch (error) {
       console.error(error);
