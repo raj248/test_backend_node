@@ -55,7 +55,7 @@ export const VideoNoteModel = {
     if (!topicId) return { success: false, error: "Topic ID is required." };
     try {
       const videoNotes = await prisma.videoNote.findMany({
-        where: { topicId },
+        where: { topicId, deletedAt: null },
         orderBy: { createdAt: "desc" },
       });
       return { success: true, data: videoNotes };
