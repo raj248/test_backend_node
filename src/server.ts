@@ -1,10 +1,9 @@
+import 'dotenv/config';
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import path from "path";
 import { logger } from "~/utils/log";
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,7 +14,7 @@ app.use(express.json());
 // Serve public folder for debug
 app.use(express.static(path.join(process.cwd(), 'public')));
 
-import notificationsRoute from "~/routes/notifications";
+import notificationsRoute from "~/routes/notifications.routes";
 import courseRoute from "~/routes/course.routes";
 import topicRoutes from '~/routes/topic.routes';
 import testPaperRoutes from "~/routes/testpaper.routes";
