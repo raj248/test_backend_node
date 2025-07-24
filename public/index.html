@@ -112,7 +112,7 @@
 
     async function loadLogs() {
       try {
-        const res = await fetch('/logs');
+        const res = await fetch('../logs');
         const json = await res.json();
         document.getElementById('logs').innerText = json.logs.join("\n");
       } catch (e) {

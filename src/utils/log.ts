@@ -1,18 +1,40 @@
 // src/utils/log.ts
-import winston from "winston";
-import util from "util";
-type LogLevel = "LOG" | "INFO" | "WARN" | "ERROR";
 
+import winston from "winston";
+import DailyRotateFile from 'winston-daily-rotate-file';
+import util from "util";
+import path from "path";
+
+type LogLevel = "LOG" | "INFO" | "WARN" | "ERROR";
 const logs: string[] = [];
 
 function formatLog(level: LogLevel, message: string): string {
   return `[${new Date().toISOString()}] [${level}] ${message}`;
 }
 
+function prettyFormat(message: any): string {
+  if (typeof message === "object") {
+    return process.env.NODE_ENV === "development"
+      ? util.inspect(message, { depth: null, colors: true })
+      : JSON.stringify(message);
+  }
+  return message;
+}
+
 function pushLog(entry: string): void {
   logs.push(entry);
   if (logs.length > 50) logs.shift();
 }
+
+// Rotating file transport
+const fileTransport = new DailyRotateFile({
+  filename: path.join("logs", "app-%DATE%.log"),
+  datePattern: "YYYY-MM-DD",
+  zippedArchive: true,
+  maxSize: "10m",
+  maxFiles: "14d",
+  level: "info",
+});
 
 // Winston Logger Configuration
 const winstonLogger = winston.createLogger({
@@ -25,17 +47,15 @@ const winstonLogger = winston.createLogger({
         try {
           parsedMessage = JSON.parse(message);
         } catch {
-          // Keep as string if not JSON
+          // keep as string
         }
       }
-
       const messageString =
         typeof parsedMessage === "object"
           ? (process.env.NODE_ENV === "development"
             ? util.inspect(parsedMessage, { depth: null, colors: true })
             : JSON.stringify(parsedMessage))
           : parsedMessage;
-
 
       const metaString =
         Object.keys(meta).length > 0
@@ -44,36 +64,45 @@ const winstonLogger = winston.createLogger({
             : JSON.stringify(meta))
           : "";
 
-
       return `[${timestamp}] [${level.toUpperCase()}] ${messageString}${metaString ? `\n${metaString}` : ""}`;
     })
   ),
-  transports: [new winston.transports.Console()],
+  transports: [
+    new winston.transports.Console({
+      format: process.env.NODE_ENV === "development"
+        ? winston.format.combine(
+          winston.format.colorize(),
+          winston.format.simple()
+        )
+        : winston.format.simple(),
+    }),
+    fileTransport
+  ],
 });
 
 // Logging functions
 function log(message: any): void {
-  const entry = formatLog("LOG", message);
+  const entry = formatLog("LOG", String(message));
   pushLog(entry);
-  winstonLogger.info(message);
+  winstonLogger.info(prettyFormat(message));
 }
 
 function info(message: any): void {
-  const entry = formatLog("INFO", message);
+  const entry = formatLog("INFO", String(message));
   pushLog(entry);
-  winstonLogger.info(message);
+  winstonLogger.info(prettyFormat(message));
 }
 
 function warn(message: any): void {
-  const entry = formatLog("WARN", message);
+  const entry = formatLog("WARN", String(message));
   pushLog(entry);
-  winstonLogger.warn(message);
+  winstonLogger.warn(prettyFormat(message));
 }
 
 function error(message: any): void {
-  const entry = formatLog("ERROR", message);
+  const entry = formatLog("ERROR", String(message));
   pushLog(entry);
-  winstonLogger.error(message);
+  winstonLogger.error(prettyFormat(message));
 }
 
 export const logger = {

@@ -16,13 +16,13 @@ app.use(express.json());
 app.use(express.static(path.join(process.cwd(), 'public')));
 
 import notificationsRoute from "~/routes/notifications";
-import courseRoute from "~/routes/course.route";
-import topicRoutes from '~/routes/topic.route';
-import testPaperRoutes from "~/routes/testpaper.route";
-import mcqRoutes from "~/routes/mcq.route";
+import courseRoute from "~/routes/course.routes";
+import topicRoutes from '~/routes/topic.routes';
+import testPaperRoutes from "~/routes/testpaper.routes";
+import mcqRoutes from "~/routes/mcq.routes";
 import trashRoutes from "~/routes/trash.routes";
-import noteRoutes from "~/routes/note.route";
-import videoNoteRoutes from "~/routes/videonote.route";
+import noteRoutes from "~/routes/note.routes";
+import videoNoteRoutes from "~/routes/videonote.routes";
 
 import { logResponseBody } from "~/middleware/logResponseBody";
 
