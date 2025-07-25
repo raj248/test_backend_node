@@ -22,6 +22,7 @@ import mcqRoutes from "~/routes/mcq.routes";
 import trashRoutes from "~/routes/trash.routes";
 import noteRoutes from "~/routes/note.routes";
 import videoNoteRoutes from "~/routes/videonote.routes";
+import newlyAddedRoutes from "~/routes/newlyadded.routes";
 
 import { logResponseBody } from "~/middleware/logResponseBody";
 
@@ -41,6 +42,7 @@ app.use("/api/trash", trashRoutes);
 app.use("/api/mcqs", mcqRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/videonotes", videoNoteRoutes)
+app.use("/api/newlyadded", newlyAddedRoutes);
 
 // Serve uploaded files statically if needed:
 app.use('/uploads', express.static('uploads'));
