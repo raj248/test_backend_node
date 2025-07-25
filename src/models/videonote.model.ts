@@ -30,9 +30,34 @@ export const VideoNoteModel = {
   async getAll() {
     try {
       const videoNotes = await prisma.videoNote.findMany({
+        where: {
+          deletedAt: null,
+        },
         orderBy: { createdAt: "desc" },
       });
-      return { success: true, data: videoNotes };
+
+      // Fetch newlyAdded entries in a single query
+      const newlyAddedItems = await prisma.newlyAdded.findMany({
+        where: {
+          tableName: "VideoNote",
+          entityId: { in: videoNotes.map(vn => vn.id) },
+        },
+        select: {
+          id: true,
+          entityId: true,
+        },
+      });
+
+      const newlyAddedMap = new Map(
+        newlyAddedItems.map(item => [item.entityId, item.id])
+      );
+
+      const enrichedVideoNotes = videoNotes.map(vn => ({
+        ...vn,
+        newlyAddedId: newlyAddedMap.get(vn.id) ?? null,
+      }));
+
+      return { success: true, data: enrichedVideoNotes };
     } catch (error) {
       console.error(error);
       return { success: false, error: "Failed to fetch video notes." };
@@ -55,12 +80,35 @@ export const VideoNoteModel = {
 
   async findByTopicId(topicId: string) {
     if (!topicId) return { success: false, error: "Topic ID is required." };
+
     try {
       const videoNotes = await prisma.videoNote.findMany({
         where: { topicId, deletedAt: null },
         orderBy: { createdAt: "desc" },
       });
-      return { success: true, data: videoNotes };
+
+      // Fetch newlyAdded entries in a single query
+      const newlyAddedItems = await prisma.newlyAdded.findMany({
+        where: {
+          tableName: "VideoNote",
+          entityId: { in: videoNotes.map(video => video.id) },
+        },
+        select: {
+          id: true,
+          entityId: true,
+        },
+      });
+
+      const newlyAddedMap = new Map(
+        newlyAddedItems.map(item => [item.entityId, item.id])
+      );
+
+      const enrichedVideoNotes = videoNotes.map(video => ({
+        ...video,
+        newlyAddedId: newlyAddedMap.get(video.id) ?? null,
+      }));
+
+      return { success: true, data: enrichedVideoNotes };
     } catch (error) {
       console.error(error);
       return { success: false, error: "Failed to fetch video notes by topic ID." };

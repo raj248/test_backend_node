@@ -37,7 +37,29 @@ export const NoteModel = {
         where: { deletedAt: null },
         orderBy: { createdAt: "desc" },
       });
-      return { success: true, data: notes };
+
+      // Fetch newlyAdded entries in a single query
+      const newlyAddedItems = await prisma.newlyAdded.findMany({
+        where: {
+          tableName: "Note",
+          entityId: { in: notes.map(note => note.id) },
+        },
+        select: {
+          id: true,
+          entityId: true,
+        },
+      });
+
+      const newlyAddedMap = new Map(
+        newlyAddedItems.map(item => [item.entityId, item.id])
+      );
+
+      const enrichedNotes = notes.map(note => ({
+        ...note,
+        newlyAddedId: newlyAddedMap.get(note.id) ?? null,
+      }));
+
+      return { success: true, data: enrichedNotes };
     } catch (error) {
       console.error(error);
       return { success: false, error: "Failed to fetch notes." };
@@ -60,12 +82,35 @@ export const NoteModel = {
 
   async findByTopicId(topicId: string) {
     if (!topicId) return { success: false, error: "Topic ID is required." };
+
     try {
       const notes = await prisma.note.findMany({
         where: { topicId, deletedAt: null },
         orderBy: { createdAt: "desc" },
       });
-      return { success: true, data: notes };
+
+      // Fetch newlyAdded entries efficiently
+      const newlyAddedItems = await prisma.newlyAdded.findMany({
+        where: {
+          tableName: "Note",
+          entityId: { in: notes.map(note => note.id) },
+        },
+        select: {
+          id: true,
+          entityId: true,
+        },
+      });
+
+      const newlyAddedMap = new Map(
+        newlyAddedItems.map(item => [item.entityId, item.id])
+      );
+
+      const enrichedNotes = notes.map(note => ({
+        ...note,
+        newlyAddedId: newlyAddedMap.get(note.id) ?? null,
+      }));
+
+      return { success: true, data: enrichedNotes };
     } catch (error) {
       console.error(error);
       return { success: false, error: "Failed to fetch notes by topic ID." };
