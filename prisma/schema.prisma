@@ -123,6 +123,18 @@ model VideoNote {
   @@index([courseType])
 }
 
+model NewlyAdded {
+  id         String   @id @default(cuid())
+  tableName  String   // "MCQ", "TestPaper", "Note", "VideoNote"
+  entityId   String   // id of the marked entity
+  addedAt    DateTime @default(now())
+  expiresAt  DateTime? // optional, for auto-unmarking as "new" after a period
+
+  @@index([tableName])
+  @@index([entityId])
+  @@index([addedAt])
+}
+
 model Trash {
   id         String    @id @default(cuid())
   tableName  String // "Course", "Topic", "MCQ", "TestPaper", "Note"
