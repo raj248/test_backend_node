@@ -32,7 +32,7 @@ export const upload = multer({
 export const NoteController = {
   async uploadNote(req: Request, res: Response) {
     try {
-      const { name, description, topicId, courseType } = req.body;
+      const { name, description, type, topicId, courseType } = req.body;
 
       if (!name || !topicId || !courseType) {
         return res.status(400).json({
@@ -51,6 +51,7 @@ export const NoteController = {
       const result = await NoteModel.create({
         name,
         description,
+        type,
         topicId,
         courseType,
         fileName: req.file.originalname,

@@ -8,7 +8,7 @@ import { logger } from "~/utils/log";
 export const VideoNoteController = {
   async addVideoNote(req: Request, res: Response) {
     try {
-      const { url, topicId, courseType } = req.body;
+      const { url, topicId, courseType, type } = req.body;
 
       if (!url || !topicId || !courseType) {
         return res.status(400).json({
@@ -21,6 +21,7 @@ export const VideoNoteController = {
         url,
         topicId,
         courseType,
+        type,
       });
 
       if (!result.success) {
@@ -35,6 +36,7 @@ export const VideoNoteController = {
       res.status(500).json({ success: false, error: "Internal server error" });
     }
   },
+
 
   async getAll(req: Request, res: Response) {
     try {

@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 interface VideoNoteData {
   url: string;
+  type: "rtp" | "mtp" | "revision" | "other"
   topicId: string;
   courseType: "CAInter" | "CAFinal";
 }
@@ -14,9 +15,10 @@ export const VideoNoteModel = {
     if (!data?.url || !data?.topicId || !data?.courseType) {
       return { success: false, error: "Required fields missing while creating video note." };
     }
+
     try {
       const videoNote = await prisma.videoNote.create({
-        data,
+        data
       });
       return { success: true, data: videoNote };
     } catch (error) {

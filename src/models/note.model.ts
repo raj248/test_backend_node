@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 interface NoteData {
   name: string;
   description?: string;
+  type: "rtp" | "mtp" | "other";
   topicId: string;
   courseType: "CAInter" | "CAFinal";
   fileName: string;
