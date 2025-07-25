@@ -31,7 +31,7 @@ export const TopicModel = {
             where: { deletedAt: null },
             select: {
               id: true,
-              marks: true, // include marks to calculate total
+              marks: true, // for total calculation
             },
           },
         },
@@ -40,12 +40,27 @@ export const TopicModel = {
         },
       });
 
-      // Calculate totalMarks and mcq count per test paper
-      const enrichedTestPapers = testPapers.map((tp) => ({
+      // Fetch newlyAdded entries in a single query
+      const newlyAddedItems = await prisma.newlyAdded.findMany({
+        where: {
+          tableName: "TestPaper",
+          entityId: { in: testPapers.map(tp => tp.id) },
+        },
+        select: {
+          id: true,
+          entityId: true,
+        },
+      });
+
+      const newlyAddedMap = new Map(
+        newlyAddedItems.map(item => [item.entityId, item.id])
+      );
+
+      const enrichedTestPapers = testPapers.map(tp => ({
         ...tp,
         totalMarks: tp.mcqs.reduce((sum, mcq) => sum + (mcq.marks ?? 0), 0),
         mcqCount: tp.mcqs.length,
-        mcqs: undefined, // optionally remove raw mcqs if you only want counts
+        newlyAddedId: newlyAddedMap.get(tp.id) ?? null,
       }));
 
       return { success: true, data: enrichedTestPapers };
