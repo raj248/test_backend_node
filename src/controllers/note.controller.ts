@@ -68,19 +68,26 @@ export const NoteController = {
         return res.status(500).json(result);
       }
 
-      // ✅ Push notification after successful note creation
+      const safeStringify = (value: any): string => {
+        if (value === null || value === undefined) return '';
+        return String(value);
+      };
+
+      const data: { [key: string]: string } = {
+        ...Object.entries(result.data || {}).reduce((acc, [key, value]) => {
+          acc[key] = safeStringify(value);
+          return acc;
+        }, {} as Record<string, string>),
+        type: "NEW_NOTE",
+      };
+
       const message: admin.messaging.Message = {
         topic: "all-devices",
         notification: {
           title: "📄 New Note Uploaded",
           body: `Note: ${name} is now available.`,
         },
-        data: {
-          type: "NEW_NOTE",
-          noteId: result.data?.id || '',
-          topicId: topicId,
-          courseType: courseType,
-        },
+        data,
         android: { priority: "high" },
         apns: { headers: { "apns-priority": "10" } },
       };
