@@ -6,6 +6,9 @@ import { logger } from "~/utils/log";
 import { nanoid } from "nanoid";
 import path from "path";
 import multer from "multer";
+import { sendNotification } from '~/utils/notificationUtil'
+import admin from 'firebase-admin' // Required for `admin.messaging.Message`
+
 
 // ✅ Multer configuration
 const storage = multer.diskStorage({
@@ -64,6 +67,27 @@ export const NoteController = {
         logger.error(`NoteController.uploadNote: ${result.error}`);
         return res.status(500).json(result);
       }
+
+      // ✅ Push notification after successful note creation
+      const message: admin.messaging.Message = {
+        topic: "all-devices",
+        notification: {
+          title: "📄 New Note Uploaded",
+          body: `Note: ${name} is now available.`,
+        },
+        data: {
+          type: "NEW_NOTE",
+          noteId: result.data?.id || '',
+          topicId: topicId,
+          courseType: courseType,
+        },
+        android: { priority: "high" },
+        apns: { headers: { "apns-priority": "10" } },
+      };
+
+      sendNotification(message).catch((err) => {
+        logger.error("Failed to send notification for new note:" + err);
+      });
 
       res.status(201).json(result);
     } catch (error) {
