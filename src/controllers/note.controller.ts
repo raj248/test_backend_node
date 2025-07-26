@@ -118,6 +118,7 @@ export const NoteController = {
   async findByTopicId(req: Request, res: Response) {
     try {
       const { topicId } = req.params;
+      const { type = "all" } = req.query;
       if (!topicId) {
         return res.status(400).json({
           success: false,
@@ -125,7 +126,7 @@ export const NoteController = {
         });
       }
 
-      const result = await NoteModel.findByTopicId(topicId);
+      const result = await NoteModel.findByTopicId(topicId, String(type));
 
       if (!result.success) {
         logger.error(`NoteController.findByTopicId: ${result.error}`);

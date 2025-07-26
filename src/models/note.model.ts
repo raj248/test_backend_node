@@ -80,16 +80,19 @@ export const NoteModel = {
     }
   },
 
-  async findByTopicId(topicId: string) {
+  async findByTopicId(topicId: string, type: string = "all") {
     if (!topicId) return { success: false, error: "Topic ID is required." };
 
     try {
       const notes = await prisma.note.findMany({
-        where: { topicId, deletedAt: null },
+        where: {
+          topicId,
+          deletedAt: null,
+          ...(type !== "all" && { type }), // ✅ conditional type filter
+        },
         orderBy: { createdAt: "desc" },
       });
 
-      // Fetch newlyAdded entries efficiently
       const newlyAddedItems = await prisma.newlyAdded.findMany({
         where: {
           tableName: "Note",
