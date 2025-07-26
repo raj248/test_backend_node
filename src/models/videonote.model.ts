@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 interface VideoNoteData {
   url: string;
+  name: string;
   type: "rtp" | "mtp" | "revision" | "other"
   topicId: string;
   courseType: "CAInter" | "CAFinal";

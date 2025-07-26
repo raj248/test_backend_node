@@ -8,7 +8,7 @@ import { logger } from "~/utils/log";
 export const VideoNoteController = {
   async addVideoNote(req: Request, res: Response) {
     try {
-      const { url, topicId, courseType, type } = req.body;
+      const { url, name, topicId, courseType, type } = req.body;
 
       if (!url || !topicId || !courseType) {
         return res.status(400).json({
@@ -19,6 +19,7 @@ export const VideoNoteController = {
 
       const result = await VideoNoteModel.create({
         url,
+        name,
         topicId,
         courseType,
         type,
