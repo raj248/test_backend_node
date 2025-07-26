@@ -89,7 +89,7 @@ model Note {
   id          String   @id @default(cuid())
   name        String
   description String?
-  type        String   @default("other")
+  type        String   @default("other") // rtp, mtp, other
   fileUrl     String
   fileName    String
   fileSize    Int
@@ -109,7 +109,7 @@ model Note {
 model VideoNote {
   id          String   @id @default(cuid())
   url         String
-  type        String   @default("other")
+  type        String   @default("other") // rtp, mtp, revision
 
   topic       Topic    @relation("TopicToVideoNotes", fields: [topicId], references: [id]) // ✅ added
   topicId     String

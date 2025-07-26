@@ -47,42 +47,55 @@ export const CourseModel = {
             include: {
               testPapers: {
                 where: { deletedAt: null },
-                select: { id: true }, // Only need IDs to count
+                select: { id: true },
               },
               notes: {
                 where: { deletedAt: null },
-                select: { id: true },
+                select: { id: true, type: true },
               },
               videoNotes: {
                 where: { deletedAt: null },
-                select: { id: true },
+                select: { id: true, type: true },
               },
             },
           },
         },
       });
 
-
       if (!course) return { success: false, error: "Course with specified type not found." };
 
-      // Clean JSON-serializable structure with counts
       const data = {
         ...course,
-        topics: course.topics.map(topic => ({
-          id: topic.id,
-          name: topic.name,
-          description: topic.description,
-          courseId: topic.courseId,
-          courseType,
-          createdAt: topic.createdAt,
-          updatedAt: topic.updatedAt,
-          deletedAt: topic.deletedAt,
-          testPaperCount: topic.testPapers.length,
-          noteCount: topic.notes.length,
-          videoNoteCount: topic.videoNotes.length,
-        })),
-      };
+        topics: course.topics.map(topic => {
+          // Group note counts by type
+          const noteCountByType = topic.notes.reduce((acc, note) => {
+            acc[note.type] = (acc[note.type] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
 
+          // Group video note counts by type
+          const videoNoteCountByType = topic.videoNotes.reduce((acc, note) => {
+            acc[note.type] = (acc[note.type] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+
+          return {
+            id: topic.id,
+            name: topic.name,
+            description: topic.description,
+            courseId: topic.courseId,
+            courseType,
+            createdAt: topic.createdAt,
+            updatedAt: topic.updatedAt,
+            deletedAt: topic.deletedAt,
+            testPaperCount: topic.testPapers.length,
+            noteCount: topic.notes.length,
+            videoNoteCount: topic.videoNotes.length,
+            noteCountByType,
+            videoNoteCountByType,
+          };
+        }),
+      };
 
       return { success: true, data };
     } catch (error) {
@@ -90,7 +103,6 @@ export const CourseModel = {
       return { success: false, error: "Failed to fetch topics by course type." };
     }
   },
-
 
   async create(data: { name: string; courseType: 'CAInter' | 'CAFinal' }) {
     if (!data?.name || !data?.courseType) {
