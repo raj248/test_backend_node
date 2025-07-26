@@ -45,17 +45,23 @@ export const CourseModel = {
             where: { deletedAt: null },
             orderBy: { createdAt: "asc" },
             include: {
-              _count: {
-                select: {
-                  testPapers: true,
-                  notes: true,
-                  videoNotes: true,
-                },
+              testPapers: {
+                where: { deletedAt: null },
+                select: { id: true }, // Only need IDs to count
+              },
+              notes: {
+                where: { deletedAt: null },
+                select: { id: true },
+              },
+              videoNotes: {
+                where: { deletedAt: null },
+                select: { id: true },
               },
             },
           },
         },
       });
+
 
       if (!course) return { success: false, error: "Course with specified type not found." };
 
@@ -67,15 +73,16 @@ export const CourseModel = {
           name: topic.name,
           description: topic.description,
           courseId: topic.courseId,
-          courseType: courseType,
+          courseType,
           createdAt: topic.createdAt,
           updatedAt: topic.updatedAt,
           deletedAt: topic.deletedAt,
-          testPaperCount: topic._count.testPapers,
-          noteCount: topic._count.notes,
-          videoNoteCount: topic._count.videoNotes,
+          testPaperCount: topic.testPapers.length,
+          noteCount: topic.notes.length,
+          videoNoteCount: topic.videoNotes.length,
         })),
       };
+
 
       return { success: true, data };
     } catch (error) {
