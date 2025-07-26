@@ -58,6 +58,6 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  logger.log(`Server running on port ${PORT}`);
+app.listen({ port: PORT, host: '0.0.0.0' }, () => {
+  logger.log(`Server running at http://0.0.0.0:${PORT}`);
 });

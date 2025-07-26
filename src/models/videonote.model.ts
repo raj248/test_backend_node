@@ -78,16 +78,19 @@ export const VideoNoteModel = {
     }
   },
 
-  async findByTopicId(topicId: string) {
+  async findByTopicId(topicId: string, type: string = "all") {
     if (!topicId) return { success: false, error: "Topic ID is required." };
 
     try {
       const videoNotes = await prisma.videoNote.findMany({
-        where: { topicId, deletedAt: null },
+        where: {
+          topicId,
+          deletedAt: null,
+          ...(type !== "all" && { type }), // ✅ conditionally add type filter
+        },
         orderBy: { createdAt: "desc" },
       });
 
-      // Fetch newlyAdded entries in a single query
       const newlyAddedItems = await prisma.newlyAdded.findMany({
         where: {
           tableName: "VideoNote",
